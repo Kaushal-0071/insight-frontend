@@ -1,6 +1,6 @@
 "use client";
-
-import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { useContext, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, FileCode } from "lucide-react";
 import ReactDiffViewer from "react-diff-viewer-continued";
+import { Pathcontext } from "../context/filecontext";
 
 const customStyles = {
   variables: {
@@ -46,7 +47,8 @@ const customStyles = {
 };
 
 export default function ProjectInsight() {
-  const [filePath, setFilePath] = useState("");
+  
+  const {filePath, setFilePath} = useContext(Pathcontext)
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState(null);
 
@@ -55,6 +57,7 @@ export default function ProjectInsight() {
       alert("Please enter a file directory path");
       return;
     }
+    setFilePath(filePath.replace(/\\/g, "/"));
     setLoading(true);
     try {
       const res = await fetch("http://localhost:4000/update", {
@@ -62,7 +65,7 @@ export default function ProjectInsight() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ paths: filePath }),
+        body: JSON.stringify({ paths: filePath.replace(/\\/g, "/") }),
       });
       const data = await res.json();
       setResponse(data);
@@ -85,6 +88,7 @@ const updatecode= async ()=>{
       
     });
     const data = await res.json();
+    
     
   } catch (error) {
     console.error("dsfsdf:", error);
@@ -156,12 +160,13 @@ const updatecode= async ()=>{
               <TabsContent value="insights">
                 <ScrollArea className="h-[600px] rounded-md border p-4">
                   <pre className="text-sm whitespace-pre-wrap">
-                    {response.message}
+                  <ReactMarkdown>{response.insights}</ReactMarkdown>
+                  
                   </pre>
                 </ScrollArea>
               </TabsContent>
             </Tabs>
-            <Button onChange={updatecode}>change</Button>
+            <Button onClick={updatecode}>change</Button>
             </>
           )}
         </CardContent>
